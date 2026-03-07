@@ -31,7 +31,7 @@ const LIVE_DATA_RE = [
   /\bscore\b|game|match|result/i,
 ];
 
-function needsLiveData(query: string): boolean {
+export function needsLiveData(query: string): boolean {
   return LIVE_DATA_RE.some((re) => re.test(query));
 }
 
@@ -212,7 +212,7 @@ async function callOpenAIStream(
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 
-function extractJSON(raw: string): string {
+export function extractJSON(raw: string): string {
   let s = raw.trim();
   s = s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "");
 
@@ -255,7 +255,7 @@ function extractJSON(raw: string): string {
  * - Unescaped newlines in strings
  * - NaN/Infinity → null
  */
-function repairJSON(text: string): string {
+export function repairJSON(text: string): string {
   let s = text;
 
   // Fix trailing commas before ] or } (with optional whitespace)
@@ -296,7 +296,7 @@ function repairJSON(text: string): string {
   return s;
 }
 
-function parseScenario(raw: string, query: string): Scenario {
+export function parseScenario(raw: string, query: string): Scenario {
   if (!raw.trim()) throw new Error("Empty response");
 
   const text = extractJSON(raw);
