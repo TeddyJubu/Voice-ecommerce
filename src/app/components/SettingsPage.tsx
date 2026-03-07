@@ -1,13 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Volume2, Shield, CreditCard, Trash2, Check, Ear, Zap, BrainCircuit, MessageSquareText, Radio } from "lucide-react";
 import { hasNativeSpeechRecognition, hasGetUserMedia, hasMediaRecorder } from "../../lib/stt";
 
 export default function SettingsPage() {
-  const [selectedVoice, setSelectedVoice] = useState("alloy");
-  const [autoSpeak, setAutoSpeak] = useState(true);
+  const [selectedVoice, setSelectedVoice] = useState(() =>
+    localStorage.getItem("voice-selectedVoice") || "alloy"
+  );
+  const [autoSpeak, setAutoSpeak] = useState(() =>
+    localStorage.getItem("voice-autoSpeak") !== "false"
+  );
   const [alwaysListening, setAlwaysListening] = useState(false);
   const [showTranscription, setShowTranscription] = useState(true);
-  const [preferredLLM, setPreferredLLM] = useState<"cerebras" | "nebius">("cerebras");
+  const [preferredLLM, setPreferredLLM] = useState<"cerebras" | "nebius">(() =>
+    (localStorage.getItem("voice-preferredLLM") as "cerebras" | "nebius") || "cerebras"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("voice-selectedVoice", selectedVoice);
+  }, [selectedVoice]);
+
+  useEffect(() => {
+    localStorage.setItem("voice-autoSpeak", String(autoSpeak));
+  }, [autoSpeak]);
+
+  useEffect(() => {
+    localStorage.setItem("voice-preferredLLM", preferredLLM);
+  }, [preferredLLM]);
   const [plan] = useState<"free" | "pro">("free");
   const [cleared, setCleared] = useState(false);
 

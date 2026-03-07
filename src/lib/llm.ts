@@ -55,7 +55,7 @@ NewsBrief
 {"type":"NewsBrief","props":{"topic":"Topic","articles":[{"title":"Headline","source":"BBC","time":"1 hour ago","snippet":"Summary sentence.","url":"https://bbc.com/..."}]}}
 
 ProductShowcase
-{"type":"ProductShowcase","props":{"query":"keywords","products":[{"title":"Product name","price":"$49","rating":4.5,"link":"https://amazon.com","source":"Amazon"}]}}
+{"type":"ProductShowcase","props":{"query":"keywords","products":[{"title":"Product name","price":"$49","rating":4.5,"link":"https://amazon.com","source":"Amazon","imagePrompt":"short description for AI image generation"}]}}
 
 ComparisonTable (use alongside ProductShowcase when comparing 2+ items)
 {"type":"ComparisonTable","props":{"headers":["Product","Price","Key Feature","Rating"],"rows":[["Name","$50","Good","4.5★"]],"highlightBest":0}}
@@ -470,14 +470,17 @@ export interface LLMResult {
  * Live-data queries → Pollinations (search) → Cerebras → Groq → Nebius
  * Knowledge queries → Cerebras → Groq → Nebius → Pollinations
  */
-export async function queryLLM(query: string): Promise<LLMResult> {
+export async function queryLLM(
+  query: string,
+  preferredProvider?: "cerebras" | "nebius"
+): Promise<LLMResult> {
   const isLive = needsLiveData(query);
   const messages: ChatMsg[] = [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "user", content: query },
   ];
 
-  // Build provider order based on query type
+  // Build provider order based on query type and user preference
   const order: Array<{ name: LLMProviderName; call: () => Promise<string> }> =
     isLive
       ? [
@@ -487,8 +490,15 @@ export async function queryLLM(query: string): Promise<LLMResult> {
           { name: "groq", call: () => groq(messages) },
           { name: "nebius", call: () => nebius(messages) },
         ]
+      : preferredProvider === "nebius"
+      ? [
+          { name: "nebius", call: () => nebius(messages) },
+          { name: "cerebras", call: () => cerebras(messages) },
+          { name: "groq", call: () => groq(messages) },
+          { name: "pollinations", call: () => pollinationsCall(messages) },
+        ]
       : [
-          // Knowledge: fast inference first
+          // Knowledge: fast inference first (Cerebras default)
           { name: "cerebras", call: () => cerebras(messages) },
           { name: "groq", call: () => groq(messages) },
           { name: "nebius", call: () => nebius(messages) },
@@ -549,7 +559,8 @@ export async function queryLLM(query: string): Promise<LLMResult> {
  */
 export async function queryLLMStream(
   query: string,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
+  preferredProvider?: "cerebras" | "nebius"
 ): Promise<LLMResult> {
   const isLive = needsLiveData(query);
   const messages: ChatMsg[] = [
@@ -566,6 +577,13 @@ export async function queryLLMStream(
         { name: "cerebras", call: (cb) => cerebrasStream(messages, cb) },
         { name: "groq", call: (cb) => groqStream(messages, cb) },
         { name: "nebius", call: (cb) => nebiusStream(messages, cb) },
+      ]
+    : preferredProvider === "nebius"
+    ? [
+        { name: "nebius", call: (cb) => nebiusStream(messages, cb) },
+        { name: "cerebras", call: (cb) => cerebrasStream(messages, cb) },
+        { name: "groq", call: (cb) => groqStream(messages, cb) },
+        { name: "pollinations", call: (cb) => pollinationsStream(messages, cb) },
       ]
     : [
         { name: "cerebras", call: (cb) => cerebrasStream(messages, cb) },
@@ -584,6 +602,13 @@ export async function queryLLMStream(
         { name: "cerebras", call: () => cerebras(messages) },
         { name: "groq", call: () => groq(messages) },
         { name: "nebius", call: () => nebius(messages) },
+      ]
+    : preferredProvider === "nebius"
+    ? [
+        { name: "nebius", call: () => nebius(messages) },
+        { name: "cerebras", call: () => cerebras(messages) },
+        { name: "groq", call: () => groq(messages) },
+        { name: "pollinations", call: () => pollinationsCall(messages) },
       ]
     : [
         { name: "cerebras", call: () => cerebras(messages) },

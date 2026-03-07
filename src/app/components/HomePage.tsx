@@ -7,6 +7,7 @@ import { SkeletonCard } from "./cards/SkeletonCard";
 import { getSuggestedQueries } from "./mockScenarios";
 import { useAlwaysListening } from "./useAlwaysListening";
 import { queryLLMStream } from "../../lib/llm";
+import { speakText, stopSpeaking } from "../../lib/tts";
 import type { Scenario } from "./mockScenarios";
 import type { LLMProviderName } from "../../lib/llm";
 
@@ -67,12 +68,14 @@ export default function HomePage() {
 
     try {
       // Use streaming query — onChunk fires for each text delta
+      const preferredLLM = localStorage.getItem("voice-preferredLLM") as "cerebras" | "nebius" | null;
       const { scenario, provider } = await queryLLMStream(
         text,
         (_chunk: string) => {
           // We don't stream the raw chunks to UI since they contain JSON,
           // not just the summary. The full parse happens on completion.
-        }
+        },
+        preferredLLM || undefined
       );
 
       setActiveProvider(provider);
@@ -93,8 +96,13 @@ export default function HomePage() {
         if (i >= summary.length) {
           setStreamingSummary(summary);
           clearInterval(streamInterval);
-          setTimeout(() => setIsSpeaking(true), 200);
-          setTimeout(() => setIsSpeaking(false), 4000);
+          // Auto-speak if enabled in settings
+          const autoSpeak = localStorage.getItem("voice-autoSpeak") !== "false";
+          if (autoSpeak && summary) {
+            const voiceId = localStorage.getItem("voice-selectedVoice") || undefined;
+            setIsSpeaking(true);
+            speakText(summary, voiceId).finally(() => setIsSpeaking(false));
+          }
         } else {
           setStreamingSummary(summary.slice(0, i));
         }
@@ -137,7 +145,14 @@ export default function HomePage() {
   };
 
   const toggleSpeaking = () => {
-    setIsSpeaking((prev) => !prev);
+    if (isSpeaking) {
+      stopSpeaking();
+      setIsSpeaking(false);
+    } else if (currentScenario?.summary) {
+      const voiceId = localStorage.getItem("voice-selectedVoice") || undefined;
+      setIsSpeaking(true);
+      speakText(currentScenario.summary, voiceId).finally(() => setIsSpeaking(false));
+    }
   };
 
   return (
