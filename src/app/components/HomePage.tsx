@@ -7,7 +7,7 @@ import { SkeletonCard } from "./cards/SkeletonCard";
 import { getSuggestedQueries } from "./mockScenarios";
 import { useAlwaysListening } from "./useAlwaysListening";
 import { queryLLMStream } from "../../lib/llm";
-import { speakText, stopSpeaking } from "../../lib/tts";
+import { speakText, stopSpeaking, resolveStoredVoiceId } from "../../lib/tts";
 import type { Scenario } from "./mockScenarios";
 import type { LLMProviderName } from "../../lib/llm";
 
@@ -99,7 +99,7 @@ export default function HomePage() {
           // Auto-speak if enabled in settings
           const autoSpeak = localStorage.getItem("voice-autoSpeak") !== "false";
           if (autoSpeak && summary) {
-            const voiceId = localStorage.getItem("voice-selectedVoice") || undefined;
+            const voiceId = resolveStoredVoiceId();
             setIsSpeaking(true);
             speakText(summary, voiceId).finally(() => setIsSpeaking(false));
           }
@@ -149,7 +149,7 @@ export default function HomePage() {
       stopSpeaking();
       setIsSpeaking(false);
     } else if (currentScenario?.summary) {
-      const voiceId = localStorage.getItem("voice-selectedVoice") || undefined;
+      const voiceId = resolveStoredVoiceId();
       setIsSpeaking(true);
       speakText(currentScenario.summary, voiceId).finally(() => setIsSpeaking(false));
     }

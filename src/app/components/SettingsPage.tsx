@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Volume2, Shield, CreditCard, Trash2, Check, Ear, Zap, BrainCircuit, MessageSquareText, Radio } from "lucide-react";
 import { hasNativeSpeechRecognition, hasGetUserMedia, hasMediaRecorder } from "../../lib/stt";
+import { ELEVENLABS_VOICES, resolveStoredVoiceId } from "../../lib/tts";
 
 export default function SettingsPage() {
-  const [selectedVoice, setSelectedVoice] = useState(() =>
-    localStorage.getItem("voice-selectedVoice") || "alloy"
-  );
+  const [selectedVoice, setSelectedVoice] = useState(resolveStoredVoiceId);
   const [autoSpeak, setAutoSpeak] = useState(() =>
     localStorage.getItem("voice-autoSpeak") !== "false"
   );
@@ -29,13 +28,7 @@ export default function SettingsPage() {
   const [plan] = useState<"free" | "pro">("free");
   const [cleared, setCleared] = useState(false);
 
-  const voices = [
-    { id: "alloy", name: "Alloy", description: "Neutral, balanced" },
-    { id: "echo", name: "Echo", description: "Warm, conversational" },
-    { id: "fable", name: "Fable", description: "Expressive, storytelling" },
-    { id: "nova", name: "Nova", description: "Bright, energetic" },
-    { id: "shimmer", name: "Shimmer", description: "Calm, soothing" },
-  ];
+  const voices = ELEVENLABS_VOICES;
 
   const clearHistory = () => {
     localStorage.removeItem("voice-assistant-history");
