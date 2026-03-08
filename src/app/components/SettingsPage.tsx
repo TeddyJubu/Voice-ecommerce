@@ -4,7 +4,7 @@ import { hasNativeSpeechRecognition, hasGetUserMedia, hasMediaRecorder } from ".
 
 export default function SettingsPage() {
   const [selectedVoice, setSelectedVoice] = useState(() =>
-    localStorage.getItem("voice-selectedVoice") || "alloy"
+    localStorage.getItem("voice-selectedVoice") || "21m00Tcm4TlvDq8ikWAM"
   );
   const [autoSpeak, setAutoSpeak] = useState(() =>
     localStorage.getItem("voice-autoSpeak") !== "false"
@@ -29,12 +29,13 @@ export default function SettingsPage() {
   const [plan] = useState<"free" | "pro">("free");
   const [cleared, setCleared] = useState(false);
 
+  // ElevenLabs pre-made voice IDs — https://elevenlabs.io/docs/voices/premade-voices
   const voices = [
-    { id: "alloy", name: "Alloy", description: "Neutral, balanced" },
-    { id: "echo", name: "Echo", description: "Warm, conversational" },
-    { id: "fable", name: "Fable", description: "Expressive, storytelling" },
-    { id: "nova", name: "Nova", description: "Bright, energetic" },
-    { id: "shimmer", name: "Shimmer", description: "Calm, soothing" },
+    { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", description: "Neutral, balanced" },
+    { id: "TxGEqnHWrfWFTfGW9XjX", name: "Josh",   description: "Warm, conversational" },
+    { id: "ThT5KcBeYPX3keUQqHPh", name: "Dorothy", description: "Expressive, storytelling" },
+    { id: "EXAVITQu4vr4xnSDxMaL", name: "Bella",   description: "Bright, energetic" },
+    { id: "MF3mGyEYCl7XYWbV9V6O", name: "Elli",    description: "Calm, soothing" },
   ];
 
   const clearHistory = () => {

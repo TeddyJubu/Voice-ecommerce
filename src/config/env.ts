@@ -31,12 +31,20 @@ export const NEBIUS = {
 
 // ─── Tier 2 · Speech-to-Text & Text-to-Speech ────────────────────────────────
 
-/** ElevenLabs — primary STT + TTS (FR-1 / FR-2) */
+/**
+ * ElevenLabs — primary STT + TTS (FR-1 / FR-2)
+ *
+ * NOTE: The ElevenLabs API key is NOT exposed here. It must be kept
+ * server-side (see ELEVENLABS_API_KEY in .env / vite.config.ts proxy).
+ * Client code should call /api/tts/:voiceId which the dev-server proxy
+ * (or a production server route) forwards to ElevenLabs with the key
+ * injected server-side.
+ */
 export const ELEVENLABS = {
-  apiKey:      env("VITE_ELEVENLABS_API_KEY",   ""),
   sttWsUrl:    env("VITE_ELEVENLABS_STT_WS_URL", "wss://api.elevenlabs.io/v1/speech-to-text/stream"),
   ttsWsUrl:    env("VITE_ELEVENLABS_TTS_WS_URL", "wss://api.elevenlabs.io/v1/text-to-speech/stream"),
-  voiceId:     env("VITE_ELEVENLABS_VOICE_ID",  "KpTQ5yzwazQWLkvnK59A"),
+  // Default voice: Rachel (ElevenLabs pre-made). Override with VITE_ELEVENLABS_VOICE_ID.
+  voiceId:     env("VITE_ELEVENLABS_VOICE_ID",  "21m00Tcm4TlvDq8ikWAM"),
 } as const;
 
 /** Deepgram Nova-2 — alternative STT (real-time WebSocket) */
