@@ -1,10 +1,12 @@
 import { Star, ExternalLink } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { pollinationsImageUrl } from "../../../lib/pollinations";
 
 export interface Product {
   title: string;
   price?: string;
   image?: string;
+  imagePrompt?: string;
   rating?: number;
   link: string;
   source?: string;
@@ -22,7 +24,10 @@ export function ProductShowcase({ products, query }: ProductShowcaseProps) {
         <h3 className="px-1">Results for "{query}"</h3>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {products.map((p, i) => (
+        {products.map((p, i) => {
+          const imageSrc = p.image ||
+            (p.imagePrompt ? pollinationsImageUrl(p.imagePrompt, { width: 200, height: 200 }) : null);
+          return (
           <a
             key={i}
             href={p.link}
@@ -30,12 +35,13 @@ export function ProductShowcase({ products, query }: ProductShowcaseProps) {
             rel="noopener noreferrer"
             className="rounded-xl border border-border bg-card shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
           >
-            {p.image && (
+            {imageSrc && (
               <div className="aspect-square bg-gray-50 p-4 flex items-center justify-center">
                 <ImageWithFallback
-                  src={p.image}
+                  src={imageSrc}
                   alt={p.title}
                   className="max-h-full max-w-full object-contain"
+                  loading="lazy"
                 />
               </div>
             )}
@@ -60,7 +66,8 @@ export function ProductShowcase({ products, query }: ProductShowcaseProps) {
               )}
             </div>
           </a>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
