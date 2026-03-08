@@ -6,6 +6,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "preview": "vite preview",
+    "start": "node server.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"

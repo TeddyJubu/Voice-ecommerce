@@ -9,6 +9,31 @@
 
 import { ELEVENLABS } from "@/config/env";
 
+/** ElevenLabs pre-made voices available in Settings. */
+export const ELEVENLABS_VOICES = [
+  { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel",  description: "Neutral, balanced" },
+  { id: "TxGEqnHWrfWFTfGW9XjX", name: "Josh",    description: "Warm, conversational" },
+  { id: "ThT5KcBeYPX3keUQqHPh", name: "Dorothy", description: "Expressive, storytelling" },
+  { id: "EXAVITQu4vr4xnSDxMaL", name: "Bella",   description: "Bright, energetic" },
+  { id: "MF3mGyEYCl7XYWbV9V6O", name: "Elli",    description: "Calm, soothing" },
+] as const
+
+const VALID_VOICE_IDS = new Set(ELEVENLABS_VOICES.map((v) => v.id))
+const DEFAULT_VOICE_ID = ELEVENLABS_VOICES[0].id // Rachel
+
+/**
+ * Read `voice-selectedVoice` from localStorage and validate it against the
+ * known ElevenLabs voice ID list.  Falls back to the default (Rachel) when
+ * the stored value is missing or a legacy name such as "alloy".
+ * Also writes the corrected value back so future reads are clean.
+ */
+export function resolveStoredVoiceId(): string {
+  const stored = localStorage.getItem("voice-selectedVoice") ?? ""
+  const valid  = VALID_VOICE_IDS.has(stored) ? stored : DEFAULT_VOICE_ID
+  if (valid !== stored) localStorage.setItem("voice-selectedVoice", valid)
+  return valid
+}
+
 // Module-level active Audio element so stopSpeaking() can pause it
 let activeAudio: HTMLAudioElement | null = null;
 let activeObjectUrl: string | null = null;

@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Volume2, Shield, CreditCard, Trash2, Check, Ear, Zap, BrainCircuit, MessageSquareText, Radio } from "lucide-react";
 import { hasNativeSpeechRecognition, hasGetUserMedia, hasMediaRecorder } from "../../lib/stt";
+import { ELEVENLABS_VOICES, resolveStoredVoiceId } from "../../lib/tts";
 
 export default function SettingsPage() {
-  const [selectedVoice, setSelectedVoice] = useState(() =>
-    localStorage.getItem("voice-selectedVoice") || "21m00Tcm4TlvDq8ikWAM"
-  );
+  const [selectedVoice, setSelectedVoice] = useState(resolveStoredVoiceId);
   const [autoSpeak, setAutoSpeak] = useState(() =>
     localStorage.getItem("voice-autoSpeak") !== "false"
   );
@@ -29,14 +28,7 @@ export default function SettingsPage() {
   const [plan] = useState<"free" | "pro">("free");
   const [cleared, setCleared] = useState(false);
 
-  // ElevenLabs pre-made voice IDs — https://elevenlabs.io/docs/voices/premade-voices
-  const voices = [
-    { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", description: "Neutral, balanced" },
-    { id: "TxGEqnHWrfWFTfGW9XjX", name: "Josh",   description: "Warm, conversational" },
-    { id: "ThT5KcBeYPX3keUQqHPh", name: "Dorothy", description: "Expressive, storytelling" },
-    { id: "EXAVITQu4vr4xnSDxMaL", name: "Bella",   description: "Bright, energetic" },
-    { id: "MF3mGyEYCl7XYWbV9V6O", name: "Elli",    description: "Calm, soothing" },
-  ];
+  const voices = ELEVENLABS_VOICES;
 
   const clearHistory = () => {
     localStorage.removeItem("voice-assistant-history");
