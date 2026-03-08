@@ -34,7 +34,8 @@ export function resolveStoredVoiceId(): string {
   return valid
 }
 
-// Module-level active Audio element so stopSpeaking() can pause it
+// Module-level state so stopSpeaking() can cancel both fetch and playback
+let activeController: AbortController | null = null;
 let activeAudio: HTMLAudioElement | null = null;
 let activeObjectUrl: string | null = null;
 // Resolve callback for the currently pending speakText() Promise
@@ -48,12 +49,16 @@ let resolveActive: (() => void) | null = null;
 export async function speakText(text: string, voiceId?: string): Promise<void> {
   const resolvedVoiceId = voiceId || ELEVENLABS.voiceId;
 
-  // Stop any currently playing audio first (also resolves the old Promise)
+  // Cancel any in-flight request and pending playback before starting a new one
   stopSpeaking();
+
+  const controller = new AbortController();
+  activeController = controller;
 
   try {
     const res = await fetch(`/api/tts/${resolvedVoiceId}`, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -100,6 +105,7 @@ export async function speakText(text: string, voiceId?: string): Promise<void> {
       });
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") return; // stopSpeaking() called
     console.warn("[TTS] speakText failed:", err);
   }
 }
@@ -109,6 +115,11 @@ export async function speakText(text: string, voiceId?: string): Promise<void> {
  * callers awaiting speakText() are not left hanging.
  */
 export function stopSpeaking(): void {
+  // Abort any in-flight fetch first so audio never starts from a stale request
+  if (activeController) {
+    activeController.abort();
+    activeController = null;
+  }
   if (activeAudio) {
     activeAudio.pause();
     activeAudio.onended = null;
