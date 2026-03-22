@@ -250,3 +250,44 @@ describe("parseScenario", () => {
     expect(scenario.blocks.length).toBeGreaterThan(0);
   });
 });
+
+// ─── Additional helper function tests ────────────────────────────────────────
+
+describe("LLM helper utilities", () => {
+  it("needsLiveData correctly identifies multiple patterns", () => {
+    expect(needsLiveData("news")).toBe(true);
+    expect(needsLiveData("price")).toBe(true);
+    expect(needsLiveData("weather")).toBe(true);
+    expect(needsLiveData("trending")).toBe(true);
+    expect(needsLiveData("2025")).toBe(true);
+  });
+
+  it("extractJSON handles various formats", () => {
+    expect(extractJSON('{"a":1}')).toBe('{"a":1}');
+    expect(extractJSON('```json\n{"a":1}\n```')).toBe('{"a":1}');
+    expect(extractJSON('text before {"a":1} text after')).toBe('{"a":1}');
+  });
+
+  it("repairJSON fixes common issues", () => {
+    const repaired1 = repairJSON('{"a":1,}');
+    expect(JSON.parse(repaired1)).toEqual({ a: 1 });
+
+    const repaired2 = repairJSON('{"n": NaN}');
+    expect(JSON.parse(repaired2)).toEqual({ n: null });
+
+    const repaired3 = repairJSON('{"arr":[1,2,]}');
+    expect(JSON.parse(repaired3)).toEqual({ arr: [1, 2] });
+  });
+
+  it("parseScenario handles different JSON structures", () => {
+    const scenario1 = parseScenario('{"summary":"test","blocks":[]}', "query");
+    expect(scenario1.summary).toBe("test");
+    expect(scenario1.query).toBe("query");
+
+    const scenario2 = parseScenario('{"message":"test","cards":[]}', "query");
+    expect(scenario2.summary).toBe("test");
+
+    const scenario3 = parseScenario('{"answer":"test","ui":[]}', "query");
+    expect(scenario3.summary).toBe("test");
+  });
+});
